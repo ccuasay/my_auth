@@ -9,10 +9,10 @@ import { useRouter } from "next/navigation";
 
 const API_BASE: string =
   process.env.NEXT_PUBLIC_API_BASE ||
-  'https://adet-nestjs.onrender.com';
+  "https://adet-nestjs.onrender.com";
 
 interface Position {
-  positionId: number;
+  id: number;              // <-- use 'id' to match backend
   positionCode: string;
   positionName: string;
 }
@@ -110,7 +110,7 @@ export default function DashboardPage() {
   }
 
   function startEdit(p: Position) {
-    setEditingId(p.positionId ?? null);
+    setEditingId(p.id ?? null);          // <-- use p.id
     setPositionCode(p.positionCode ?? "");
     setPositionName(p.positionName ?? "");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -143,7 +143,6 @@ export default function DashboardPage() {
         <header className="flex items-center justify-between mb-5">
           <h1 className="text-2xl font-bold">Positions Dashboard</h1>
 
-          {/* Black Refresh Button */}
           <Button
             className="bg-black border border-white text-white hover:bg-neutral-800"
             onClick={() => fetchPositions()}
@@ -236,10 +235,10 @@ export default function DashboardPage() {
 
                 {positions.map((p) => (
                   <tr
-                    key={p.positionId ?? `${p.positionCode}-${Math.random()}`}
+                    key={p.id ?? `${p.positionCode}-${Math.random()}`}   // <-- use p.id
                     className="border-t border-neutral-700"
                   >
-                    <td className="px-4 py-2">{p.positionId}</td>
+                    <td className="px-4 py-2">{p.id}</td>              
                     <td className="px-4 py-2">{p.positionCode}</td>
                     <td className="px-4 py-2">{p.positionName}</td>
                     <td className="px-4 py-2">
@@ -255,7 +254,7 @@ export default function DashboardPage() {
                         <Button
                           className="bg-black border border-red-500 text-red-500 hover:bg-neutral-800"
                           size="sm"
-                          onClick={() => handleDelete(p.positionId)}
+                          onClick={() => handleDelete(p.id)}      // <-- use p.id
                         >
                           Delete
                         </Button>
