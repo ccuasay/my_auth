@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
 const API_BASE: string =
   process.env.NEXT_PUBLIC_API_BASE ||
   "https://adet-nestjs.onrender.com";
 
 interface Position {
-  id: number;              // <-- use 'id' to match backend
+  id: number;              
   positionCode: string;
   positionName: string;
 }
@@ -22,6 +23,7 @@ export default function DashboardPage() {
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null); // <-- username state
 
   const [positionCode, setPositionCode] = useState<string>("");
   const [positionName, setPositionName] = useState<string>("");
@@ -33,13 +35,23 @@ export default function DashboardPage() {
     setHasMounted(true);
   }, []);
 
-  // Require login
+  // Require login & decode username
   useEffect(() => {
     const token = getToken();
     if (!token) {
       router.push("/login");
       return;
     }
+
+    // Decode token to get username
+    try {
+      const decoded: any = jwtDecode(token);
+      setUsername(decoded.username || decoded.user || "Master");
+    } catch (err) {
+      console.error("Failed to decode token", err);
+      setUsername("Master");
+    }
+
     fetchPositions();
   }, []);
 
@@ -110,7 +122,7 @@ export default function DashboardPage() {
   }
 
   function startEdit(p: Position) {
-    setEditingId(p.id ?? null);          // <-- use p.id
+    setEditingId(p.id ?? null);
     setPositionCode(p.positionCode ?? "");
     setPositionName(p.positionName ?? "");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -141,7 +153,12 @@ export default function DashboardPage() {
 
         {/* HEADER */}
         <header className="flex items-center justify-between mb-5">
-          <h1 className="text-2xl font-bold">Positions Dashboard</h1>
+          <div>
+            <h1 className="text-2xl font-bold">Positions Dashboard</h1>
+            {username && (
+              <p className="text-md text-gray-300">Welcome Master {username}</p>
+            )}
+          </div>
 
           <Button
             className="bg-black border border-white text-white hover:bg-neutral-800"
@@ -192,7 +209,7 @@ export default function DashboardPage() {
                       setPositionCode("");
                       setPositionName("");
                     }}
-                    className="border-white text-white"
+                    className="border-black text-white"
                   >
                     Cancel
                   </Button>
@@ -235,7 +252,7 @@ export default function DashboardPage() {
 
                 {positions.map((p) => (
                   <tr
-                    key={p.id ?? `${p.positionCode}-${Math.random()}`}   // <-- use p.id
+                    key={p.id ?? `${p.positionCode}-${Math.random()}`}
                     className="border-t border-neutral-700"
                   >
                     <td className="px-4 py-2">{p.id}</td>              
@@ -254,7 +271,7 @@ export default function DashboardPage() {
                         <Button
                           className="bg-black border border-red-500 text-red-500 hover:bg-neutral-800"
                           size="sm"
-                          onClick={() => handleDelete(p.id)}      // <-- use p.id
+                          onClick={() => handleDelete(p.id)}
                         >
                           Delete
                         </Button>
