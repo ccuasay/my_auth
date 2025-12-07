@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getToken, logoutUser } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -7,24 +8,35 @@ import { FaHome } from 'react-icons/fa';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const token = getToken();
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // loading state while checking token
 
-  if (!token) {
-    router.push('/login');
-    return null;
-  }
+  useEffect(() => {
+    const t = getToken();
+    if (!t) {
+      router.push('/login'); // redirect safely on client
+    } else {
+      setToken(t); // token exists
+    }
+    setIsLoading(false);
+  }, [router]);
 
   function handleLogout() {
     logoutUser();
     router.push('/login');
   }
 
+  // While we check token, show nothing or a loader
+  if (isLoading) return null;
+
+  // If no token, we already redirected
+  if (!token) return null;
+
   return (
     <div className="min-h-screen w-full bg-black text-white p-10">
 
       {/* HEADER */}
       <header className="flex justify-between items-center mb-10">
-
         <h1 className="text-5xl font-bold">Dashboard</h1>
 
         {/* RIGHT SECTION: HOME ICON + LOGOUT BUTTON */}
@@ -43,12 +55,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             Logout
           </Button>
         </div>
-
       </header>
 
       {/* PAGE CONTENT */}
       {children}
-
     </div>
   );
 }
